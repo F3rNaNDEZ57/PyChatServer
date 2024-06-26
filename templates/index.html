@@ -21,7 +21,7 @@
     <input type="text" id="search" placeholder="Search users..." oninput="searchUsers()">
     <ul id="user-list">
         {% for user in users %}
-        <li>
+        <li id="user-{{ user[1] }}">
             <div>
                 <strong>{{ user[1] }}</strong><br>
                 <small>Last message: {{ user[3] or 'No messages yet' }}</small><br>
@@ -32,5 +32,56 @@
     </ul>
     <ul id="search-results"></ul>
     <a href="{{ url_for('logout') }}">Logout</a>
+
+    <script>
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('update_user_list', (data) => {
+            const userElement = document.getElementById(`user-${data.sender}`);
+            if (userElement) {
+                userElement.querySelector('small').textContent = `Last message: ${data.message}`;
+            } else {
+                const userList = document.getElementById('user-list');
+                const li = document.createElement('li');
+                li.id = `user-${data.sender}`;
+                li.innerHTML = `
+                    <div>
+                        <strong>${data.sender}</strong><br>
+                        <small>Last message: ${data.message}</small><br>
+                        <button onclick="window.location.href='${window.location.origin}/chat/${data.sender}'">Chat</button>
+                    </div>
+                `;
+                userList.appendChild(li);
+            }
+        });
+
+        function searchUsers() {
+            const query = document.getElementById('search').value;
+            fetch(`/search_users?query=${query}`)
+                .then(response => response.json())
+                .then(users => {
+                    const userList = document.getElementById('search-results');
+                    userList.innerHTML = '';
+                    users.forEach(user => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <div>
+                                <strong>${user[1]}</strong><br>
+                                <button onclick="window.location.href='${window.location.origin}/chat/${user[1]}'">Chat</button>
+                            </div>
+                        `;
+                        userList.appendChild(li);
+                    });
+                });
+        }
+    </script>
 </body>
 </html>

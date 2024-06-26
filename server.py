@@ -94,22 +94,6 @@ def chat(recipient_username):
         flash('User not found.', 'danger')
         return redirect(url_for('index'))
 
-# @app.route('/chat_history/<recipient_username>', methods=['GET'])
-# @login_required
-# def chat_history(recipient_username):
-#     cursor.execute("SELECT id FROM users WHERE username = ?", (recipient_username,))
-#     recipient = cursor.fetchone()
-#     if recipient:
-#         cursor.execute('''
-#         SELECT sender_id, recipient_id, message, timestamp
-#         FROM messages
-#         WHERE (sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)
-#         ORDER BY timestamp ASC
-#         ''', (current_user.id, recipient[0], recipient[0], current_user.id))
-#         messages = cursor.fetchall()
-#         return jsonify(messages)
-#     return jsonify([])
-
 @app.route('/chat_history/<recipient_username>', methods=['GET'])
 @login_required
 def chat_history(recipient_username):
@@ -129,8 +113,6 @@ def chat_history(recipient_username):
         ]
         return jsonify(messages)
     return jsonify([])
-
-
 
 @socketio.on('join')
 def handle_join(data):
@@ -156,6 +138,8 @@ def handle_message(data):
         conn.commit()
         emit('message', {'sender': current_user.username, 'message': message}, room=recipient_username)
         emit('message', {'sender': current_user.username, 'message': message}, room=current_user.username)
+        # Notify index.html to update
+        emit('update_user_list', {'sender': current_user.username, 'message': message, 'recipient': recipient_username}, broadcast=True)
     else:
         emit('message', {'sender': 'System', 'message': 'Recipient not found.'}, room=current_user.username)
 
