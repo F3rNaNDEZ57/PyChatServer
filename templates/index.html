@@ -65,6 +65,10 @@
 
         function searchUsers() {
             const query = document.getElementById('search').value;
+            if (query.trim() === '') {
+                document.getElementById('search-results').innerHTML = '';
+                return;
+            }
             fetch(`/search_users?query=${query}`)
                 .then(response => response.json())
                 .then(users => {
