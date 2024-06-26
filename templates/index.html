@@ -1,0 +1,55 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Application</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        #chat {
+            list-style: none;
+            padding: 0;
+        }
+        #chat li {
+            padding: 8px;
+            margin-bottom: 10px;
+            background-color: #f3f3f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Application</h1>
+    <h2>Welcome, {{ username }}</h2>
+    <ul id="chat"></ul>
+    <input id="recipient" type="text" placeholder="Recipient Username" />
+    <input id="message" type="text" placeholder="Type your message here..." />
+    <button onclick="sendMessage()">Send</button>
+    <script>
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            socket.emit('join', {username: '{{ username }}'});
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            socket.emit('leave', {username: '{{ username }}'});
+        });
+
+        socket.on('message', (data) => {
+            const li = document.createElement('li');
+            li.textContent = `${data.sender}: ${data.message}`;
+            document.getElementById('chat').appendChild(li);
+        });
+
+        function sendMessage() {
+            const recipient = document.getElementById('recipient').value;
+            const message = document.getElementById('message').value;
+            socket.emit('message', { recipient, message });
+            document.getElementById('message').value = '';
+        }
+    </script>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>
