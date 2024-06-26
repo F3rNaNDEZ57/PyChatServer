@@ -1,5 +1,3 @@
-// static/js/chat_scripts.js
-
 const socket = io();
 
 socket.on('connect', () => {

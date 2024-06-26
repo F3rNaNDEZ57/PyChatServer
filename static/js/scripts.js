@@ -1,5 +1,3 @@
-// static/js/scripts.js
-
 const socket = io();
 
 socket.on('connect', () => {

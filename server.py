@@ -1,4 +1,3 @@
-# server.py
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
