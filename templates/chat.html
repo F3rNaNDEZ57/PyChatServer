@@ -1,0 +1,27 @@
+<!-- templates/chat.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat with {{ recipient_username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat_styles.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const username = "{{ username }}";
+        const recipientUsername = "{{ recipient_username }}";
+        const currentUser = {
+            id: {{ current_user.id }},
+            username: "{{ username }}"
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/chat_scripts.js') }}" defer></script>
+</head>
+<body>
+    <h1>Chat with {{ recipient_username }}</h1>
+    <button onclick="window.location.href='{{ url_for('index') }}'">Back</button>
+    <ul id="chat"></ul>
+    <input id="recipient" type="hidden" value="{{ recipient_username }}" />
+    <input id="message" type="text" placeholder="Type your message here..." />
+    <button id="send-button" onclick="sendMessage()">Send</button>
+</body>
+</html>

@@ -4,52 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Application</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <style>
-        #chat {
-            list-style: none;
-            padding: 0;
-        }
-        #chat li {
-            padding: 8px;
-            margin-bottom: 10px;
-            background-color: #f3f3f3;
-        }
-    </style>
+    <script>
+        const username = "{{ username }}";
+        const currentUser = {
+            id: {{ current_user.id }},
+            username: "{{ username }}"
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}" defer></script>
 </head>
 <body>
     <h1>Chat Application</h1>
     <h2>Welcome, {{ username }}</h2>
-    <ul id="chat"></ul>
-    <input id="recipient" type="text" placeholder="Recipient Username" />
-    <input id="message" type="text" placeholder="Type your message here..." />
-    <button onclick="sendMessage()">Send</button>
-    <script>
-        const socket = io();
-
-        socket.on('connect', () => {
-            console.log('Connected to server');
-            socket.emit('join', {username: '{{ username }}'});
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Disconnected from server');
-            socket.emit('leave', {username: '{{ username }}'});
-        });
-
-        socket.on('message', (data) => {
-            const li = document.createElement('li');
-            li.textContent = `${data.sender}: ${data.message}`;
-            document.getElementById('chat').appendChild(li);
-        });
-
-        function sendMessage() {
-            const recipient = document.getElementById('recipient').value;
-            const message = document.getElementById('message').value;
-            socket.emit('message', { recipient, message });
-            document.getElementById('message').value = '';
-        }
-    </script>
+    <input type="text" id="search" placeholder="Search users..." oninput="searchUsers()">
+    <ul id="user-list">
+        {% for user in users %}
+        <li>
+            <div>
+                <strong>{{ user[1] }}</strong><br>
+                <small>Last message: {{ user[3] or 'No messages yet' }}</small><br>
+                <button onclick="window.location.href='{{ url_for('chat', recipient_username=user[1]) }}'">Chat</button>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <ul id="search-results"></ul>
     <a href="{{ url_for('logout') }}">Logout</a>
 </body>
 </html>
