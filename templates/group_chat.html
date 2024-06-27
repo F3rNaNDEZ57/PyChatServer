@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat with {{ group_name }}</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat_styles.css') }}">
+</head>
+<body>
+    <h1>Chat with {{ group_name }}</h1>
+    <button onclick="window.location.href='{{ url_for('index') }}'">Back</button>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message here...">
+    <button onclick="sendMessage()">Send</button>
+    
+    <form id="addMemberForm" method="POST" action="{{ url_for('add_group_member') }}">
+        <input type="hidden" name="group_id" value="{{ group_id }}">
+        <input type="text" id="searchInput" placeholder="Search users...">
+        <div id="searchResults"></div>
+        <button type="submit">Add Member</button>
+    </form>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var groupId = {{ group_id }};
+        var username = "{{ username }}";
+
+        socket.emit('join_group', { group_id: groupId });
+
+        socket.on('group_message', function(data) {
+            $('#messages').append('<div><strong>' + data.sender + ':</strong> ' + data.message + '</div>');
+        });
+
+        function sendMessage() {
+            var message = $('#messageInput').val();
+            if (message) {
+                socket.emit('group_message', { group_id: groupId, message: message });
+                $('#messageInput').val('');
+            }
+        }
+
+        $(document).ready(function() {
+            $.get('/group_chat_history/' + groupId, function(data) {
+                data.forEach(function(message) {
+                    $('#messages').append('<div><strong>' + message.sender_id + ':</strong> ' + message.message + '</div>');
+                });
+            });
+
+            $('#searchInput').on('input', function() {
+                var query = $(this).val();
+                if (query.length > 0) {
+                    $.get('/search_users', { query: query }, function(data) {
+                        var results = '';
+                        data.forEach(function(user) {
+                            results += '<div><span>' + user.username + '</span> <button type="button" onclick="addMember(' + user.id + ', \'' + user.username + '\')">Add</button></div>';
+                        });
+                        $('#searchResults').html(results);
+                    });
+                } else {
+                    $('#searchResults').html('');
+                }
+            });
+        });
+
+        function addMember(userId, username) {
+            $.post('/add_group_member', { group_id: groupId, username: username }, function() {
+                alert(username + ' added to the group!');
+            });
+        }
+    </script>
+</body>
+</html>
